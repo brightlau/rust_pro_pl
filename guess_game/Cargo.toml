@@ -1,7 +1,6 @@
 [package]
-name = "rust_pro_pl"
+name = "guess_game"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-guess_game = { path = "./guess_game" }
