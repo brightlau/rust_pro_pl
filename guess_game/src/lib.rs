@@ -1,8 +1,8 @@
 mod guess;
 
-use guess::guess::guess_fn;
+use guess::core::guess_fn;
 
 pub fn guessing() {
-    println!("Hello, guessing!");
+    println!("beg, guessing!");
     guess_fn();
 }
