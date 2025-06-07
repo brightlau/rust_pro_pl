@@ -7,4 +7,7 @@ fn main() {
     
     // 猜字游戏库
     game();
+
+    // tour_rust rust 学习库
+    println!("{}", tour_rust::add(10, 20));
 }

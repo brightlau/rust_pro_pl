@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 guess_game = { path = "./guess_game" }
+tour_rust = { path = "./tour_rust" }
