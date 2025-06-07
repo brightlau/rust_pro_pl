@@ -37,17 +37,41 @@ Rust：无悬垂指针、缓冲区溢出风险
 ```rust
 // Rust 自动处理内存分配
 println!("{}", "hello");           // 字符串直接传递，无内存管理负担
+
+fn main() {
+    let s = String::from("hello"); // 在堆上分配内存
+    println!("{}", s);             // 安全访问
+} // 自动调用 drop(s) 释放内存
+//
+// 所有权系统：每个值有唯一所有者，离开作用域自动释放
+// 借用检查：同一时刻只能有一个可变引用或多个不可变引用
+// 自动内存管理：释放时机通过 Drop trait 自动释放资源、无 GC 开销编译时确定生命周期，无运行时垃圾回收
+// 越界访问防护：编译时检查长度（已知索引）
 ```
 
 C/C++：存在内存泄漏、越界访问等风险
 
 ```cpp
-// C 需要手动管理内存
-char* s = malloc(6); 
-strcpy(s, "hello");
+// C 需要手动管理内存场景
+#include <stdlib.h>
+#include <string.h>
 
-printf("%s", s);                   // 需要确保 s 有效且以 '\0' 结尾
-free(s);                           // 必须手动释放内存
+int main() {
+    char* s = malloc(6);           // 手动分配堆内存
+    strcpy(s, "hello");            // 正确复制，注意写入越界
+    printf("%s\n", s);             // 风险1：若 s 未初始化？
+    free(s);                       // 风险2：忘记 free 导致泄漏
+    // printf("%s\n", s);          // 风险3：释放后访问（悬垂指针）
+    return 0;
+}
+
+// 安全场景
+// 1. 字符串字面量直接传递  -> 静态区，无需管理
+// 2. 栈上字符数组   -> 自动释放
+//
+// 风险场景（需手动管理）
+// 1. 堆分配字符串   -> malloc/free
+// 2. 非常量字符指针 -> 返回局部变量指针（悬垂指针）
 ```
 
 #### 1.3 语法灵活性
@@ -56,8 +80,8 @@ Rust：通过 {} 自动选择 trait，支持自定义格式（如 {:.2} 保留�
 
 ```rust
 // Rust 自动推导显示方式
-println!("Debug: {:?}", vec![1, 2]);  // 自动调用 Debug trait
-println!("Display: {}", 3.14);        // 自动调用 Display trait
+println!("Debug: {:?}", vec![1, 2]);  // 自动调用 Debug trait -> {:?} 调试输出
+println!("Display: {}", 3.14);        // 自动调用 Display trait -> {} 用户友好的常规输出
 ```
 
 C/C++：格式符号（%d, %s）固定，灵活性差
@@ -115,6 +139,19 @@ C/C++：某些高级格式（如 %n 写入已输出字符数）在 Rust 中不�
 // C 的复杂格式化
 printf("%-10s", "left");    // 左对齐填充
 printf("%#x", 255);         // 十六进制带前缀
+
+// %n 用于将已输出的字符数写入指定变量 count
+int count;
+printf("Hello%n World\n", &count); 
+printf("已输出字符数: %d\n", count);
+
+// %n 的安全风险
+// 危险代码（C）
+void vulnerable(const char* input) {
+    int a, b;
+    printf(input); // 若用户输入包含 %n 则可篡改内存
+}
+// 攻击者可输入 "%100x%n" 覆盖内存，实际需要 2 个参数（对应 %x 和 %n），但 vulnerable 函数未传入参数 → printf 会读取栈上的 残留数据 作为参数
 ```
 
 #### 1.7 跨语言一致性
@@ -168,7 +205,9 @@ GCC/Clang 的格式字符串检查
 
 ```cpp
 // 启用编译警告
-// gcc -Wformat=2 test.c
+// gcc -Wformat=2 test.c  
+// gcc -Werror=format test.c 
+// gcc -Wformat-security test.c
 
 // 示例代码
 int main() {
@@ -185,6 +224,17 @@ clang 的 __attribute__ 扩展
 ```cpp
 // 自定义安全函数注解
 void safe_printf(const char* fmt, ...) __attribute__((format(printf, 1, 2)));
+// 自定义的格式化输出函数，模仿 printf 的行为
+// 参数：
+// const char* fmt：格式字符串（第一个参数）
+// ...：可变数量的参数（类似 printf）
+//
+// __attribute__((format(printf, 1, 2))) 是 GCC/Clang 编译格式检查指令，含义如下：
+// format：启用格式字符串检查
+// printf：指定检查规则遵循 printf 系列函数的格式
+// 1, 2：
+// 1：格式字符串的位置是函数的 第1个参数
+// 2：可变参数列表从函数的 第2个参数 开始
 
 int main() {
     safe_printf("%d", "text");  // 编译警告：类型不匹配
@@ -231,8 +281,14 @@ int main() {
 Glibc 的 `FORTIFY_SOURCE`
 
 ```cpp
-// 编译时启用加固
+// 编译时启用加固，启用 Glibc 的 内存安全强化机制（最高级别）
 // gcc -O2 -D_FORTIFY_SOURCE=2 test.c
+//
+// 编译时：替换不安全函数（如 strcpy）为带有长度检查的安全版本（如 __strcpy_chk）。
+// 运行时：检测缓冲区溢出等内存错误，触发程序终止（而非允许未定义行为）。
+// strcpy 替换为	__strcpy_chk	检测目标缓冲区过小
+// sprintf 替换为	__sprintf_chk	检测格式化输出超出目标缓冲区
+// memcpy 替换为	__memcpy_chk	检测复制的数据长度超过目标容量
 
 // 示例越界访问
 char buf[10];
@@ -242,17 +298,52 @@ sprintf(buf, "%s", "This is too long!");  // 运行时终止并报错
 // 局限：仅部分函数支持，性能开销
 ```
 
- 动态格式字符串校验
+动态格式字符串校验
 
 ```cpp
 // 自定义安全封装
+// 功能目标
+// 实现一个安全的 printf 函数，在输出前对格式字符串和参数进行校验
+// 防止格式化字符串攻击（如 %n 注入）和参数类型不匹配问题
+//
+// 代码流程
+// va_start(args, fmt)：初始化 args 指向可变参数列表
+// va_copy(args_copy, args)：复制参数列表到 args_copy
+// validate_format(fmt, args)：校验格式字符串与参数合法性
+// 校验通过时，vprintf(fmt, args_copy) 输出格式化内容
+// va_end 清理参数列表
+
 void safe_printf(const char* fmt, ...) {
-    va_list args;
+    va_list args, args_copy;
     va_start(args, fmt);
-    if(validate_format(fmt, args)) {  // 自定义校验逻辑
-        vprintf(fmt, args);
+    va_copy(args_copy, args);  // 创建参数副本
+
+    if (validate_format(fmt, args)) {  // 用副本校验
+        vprintf(fmt, args_copy);       // 用原始参数输出
+    } else {
+        fprintf(stderr, "[ERROR] Invalid format string: %s\n", fmt);
     }
+
     va_end(args);
+    va_end(args_copy);
+}
+
+bool validate_format(const char* fmt, va_list args) {
+    // 禁用危险格式符（如 %n）
+    if (strstr(fmt, "%n") != NULL) return false;
+
+    // 遍历格式字符串，验证参数类型和数量
+    for (const char* p = fmt; *p != '\0'; p++) {
+        if (*p == '%') {
+            // 解析格式符，检查参数类型
+            switch (*(++p)) {
+                case 'd': va_arg(args, int); break;
+                case 's': va_arg(args, char*); break;
+                default: return false; // 不支持的类型
+            }
+        }
+    }
+    return true;
 }
 
 // 代价：需要维护格式校验逻辑
@@ -291,6 +382,12 @@ clang-tidy -checks='-*,clang-analyzer-security.*' test.c
 
 ```cpp
 // 预定义安全日志宏
+// 功能：将整数值 x 格式化为字符串并通过 UART 发送
+// 步骤：
+// 分配缓冲区：在栈上创建 char buf[20]（假设 32 位整数的最大长度为 11 字符）
+// 安全格式化：使用 snprintf 限制写入长度，避免缓冲区溢出
+// 发送数据：调用 uart_send 发送格式化后的字符串
+//
 #define LOG_INT(x) do { \
     char buf[20]; \
     snprintf(buf, sizeof(buf), "%d", x); \
