@@ -6,5 +6,8 @@ pub fn strings_fn() {
     s.push_str("hello");
     s.push_str("string");
     println!("s is {}, len: {}", s, s.len());
+
+    let slice = "hello";
+    println!("slice is {}, len: {}", slice, slice.len());
 }
     
