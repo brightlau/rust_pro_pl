@@ -1,4 +1,4 @@
-## 变量声明之 Rust 变量 let mut 声明与 C/C++ 变量声明对比分析
+## 变量 varablie 声明- Rust 变量 let mut 声明与 C/C++ 变量声明对比分析
 
 ### 一、变量声明设计：`let` 与 `mut` 的哲学解析
 
