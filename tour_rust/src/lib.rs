@@ -1,3 +1,14 @@
+mod io;
+mod variable;
+
+use io::println::println_fn;
+use variable::let_mut::let_mut_fn;
+
+pub fn tour_rust_fn() {
+    println_fn();
+    let_mut_fn();
+}
+
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
 }

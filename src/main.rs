@@ -10,4 +10,5 @@ fn main() {
 
     // tour_rust rust 学习库
     println!("{}", tour_rust::add(10, 20));
+    tour_rust::tour_rust_fn();
 }
