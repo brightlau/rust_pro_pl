@@ -131,7 +131,14 @@ pub fn guess_fn() {
     */
     let mut guess = String::new();
     /*
-    
+    在程序的第一行使用 use std::io; 从标准库中引入了输入/输出功能。现在调用 io 库中的函数 stdin，这允许我们处理用户输入，等价 std::io::stdin <=> use std::io; io::stdin()
+    stdin 函数返回一个 std::io::Stdin 的实例，这是一种代表终端标准输入句柄的类型。
+    .read_line(&mut guess) 调用了标准输入句柄上的 read_line 方法，以获取用户输入，将 &mut guess 作为参数传递给 read_line 函数，让其将用户输入储存到这个字符串中。
+    read_line 的工作是，无论用户在标准输入中键入什么内容，都将其追加（不会覆盖其原有内容）到一个字符串中，因此它需要字符串作为参数。这个字符串参数应该是可变的，以便 read_line 将用户输入附加上去
+
+    & 表示这个参数是一个 引用（reference），它允许多处代码访问同一处数据，而无需在内存中多次拷贝。引用是一个复杂的特性，Rust 的一个主要优势就是安全而简单的操纵引用。
+
+    使用 Result 类型来处理潜在的错误。
     */
     io::stdin().read_line(&mut guess).expect("failed to read line");
 
