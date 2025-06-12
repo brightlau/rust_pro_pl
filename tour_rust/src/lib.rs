@@ -4,7 +4,7 @@ mod functions;
 
 use library::iostream::println::println_fn;
 use declarations::let_mut::let_mut_fn;
-use declarations::data_type::strings::strings_fn;
+use declarations::strings::strings::strings_fn;
 use functions::associated_function::associated_fn;
 
 pub fn tour_rust_fn() {

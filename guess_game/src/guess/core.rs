@@ -2,6 +2,18 @@
 如果需要的库类型不在预导入的设定中（如 io::stdin），则需要使用 use 显示的引入其程序的作用域中。*/
 use std::io;
 
+/**
+ * 知识点：
+ * 
+ * 1、macros 宏处理
+ * 2、library::iostream 标准输入输出 println、stdin
+ * 3、declarations 声明 let mut
+ * 4、declarations 数据类型 string 
+ * 5、declarations 数据类型 指针与引用 
+ * 6、exceptions 异常处理 result 
+ * 7、basic_concepts::crate 编译单元、库文件、可执行文件
+ */
+
 pub fn guess_fn() {
     /* println! 调用的是一个 rust 的宏，没有 ! 的调用是 rust 的一个函数。当看到符号 ! 时表示调用的是一个宏而不是函数
     宏并不总是遵循函数的规则 */
@@ -29,6 +41,9 @@ pub fn guess_fn() {
     */
     io::stdin().read_line(&mut guess).expect("failed to read line");
 
+    /* 这行代码现在打印了存储用户输入的字符串。{} 这对大括号是一个占位符：当打印变量的值时，变量名可以写进大括号中。 
+    当打印表达式的执行结果时，格式化字符串（format string）中大括号中留空，格式化字符串后跟逗号分隔的需要打印的表达式列表，其顺序与每一个空大括号占位符的顺序一致。
+    */
     println!("You guessed: {guess}");
 
     
