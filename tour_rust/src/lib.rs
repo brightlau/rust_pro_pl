@@ -1,11 +1,11 @@
-mod io;
-mod variable;
-mod function;
+mod library;
+mod declarations;
+mod functions;
 
-use io::println::println_fn;
-use variable::let_mut::let_mut_fn;
-use variable::strings::strings_fn;
-use function::associated_function::associated_fn;
+use library::iostream::println::println_fn;
+use declarations::let_mut::let_mut_fn;
+use declarations::data_type::strings::strings_fn;
+use functions::associated_function::associated_fn;
 
 pub fn tour_rust_fn() {
     println_fn();
